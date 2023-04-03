@@ -10,13 +10,13 @@ output: "72"
 
 input: "(2 - 3) * (3 * 10)"
 output: "-30"
-*/
 
 const source1 = "1 + 2";
 const source2 = "2 + 2 * 3";
 const source2_5 = "2 * 2 + 3";
 const source3 = "(2+  22) * 3";
 const source4 = "(2 - 3) * (3 * 10)";
+*/
 
 export const evaluate = (tree: Tree): number => {
     if (tree.tag === 'number') {
@@ -39,7 +39,7 @@ export const evaluate = (tree: Tree): number => {
         }
     }
     
-    return 0;
+    throw new Error('Invalid token on tree');
 };
 
 type Tree = 
@@ -50,7 +50,7 @@ type Tree =
 export const parse = (tokens: Token[]): Tree => {
     let token: Token = tokens.shift()!;
 
-    if(!token) throw new Error('Invalid Token');
+    if(!token) throw new Error('Invalid token');
     
     let tree: Tree = {} as Tree;
     
@@ -65,14 +65,14 @@ export const parse = (tokens: Token[]): Tree => {
         if(!op) return tree;
         const right = parse(tokens);
 
-        if(op.tag !== 'operator') throw new Error('Invalid Token');
+        if(op.tag !== 'operator') throw new Error('Scope needs to have at least one operator');
 
         return { tag: 'operator', value: op.value, left: tree, right }
     }
     if (token.tag === 'close') {
-        return { tag: 'noop' };
+        throw new Error('Trying to parse invalid syntax of parentesis');
     }
-    if(!tokens.length) return tree;
+    
     const right = parse(tokens);
 
     tree = { tag: 'operator', value: `${token.value}`, left: tree, right };
@@ -146,10 +146,10 @@ export const tokenizer = (source: string): Token[] => {
     return tokens;
 }
 
-if(true){
+/*
     console.log(evaluate(parse(tokenizer(source1))));
     console.log(evaluate(parse(tokenizer(source2))));
     console.log(evaluate(parse(tokenizer(source2_5))));
     console.log(evaluate(parse(tokenizer(source3))));
     console.log(evaluate(parse(tokenizer(source4))));
-}
+*/
