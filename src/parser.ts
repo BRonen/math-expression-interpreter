@@ -1,38 +1,82 @@
-import type { Token } from "./types";
+import type { Token, Tree } from "./types";
 
-type Tree = 
-    | { tag: 'operator', value: string, left: Tree, right: Tree }
-    | { tag: 'number', value: number}
-    | { tag: 'EOF'};
+export const parseLiteral = (tokens: Token[]): Tree => {
+    const token: Token = tokens.shift() as Token
+    const head = tokens[0]
+
+    if(token?.tag !== 'literal')
+        throw new Error('Operator needs to be before a literal or expression')
+
+    if(head?.tag !== 'operator')
+        return { tag: 'literal', value: token.value }
+    
+    return parseTokens(tokens, token)
+}
+
+export const parseOperator = (tokens: Token[], carry?: Tree): Tree => {
+    const token = tokens.shift()
+
+    if(!carry || token?.tag !== 'operator')
+        throw Error('Operator needs to be after a literal or expression')
+
+    const right = parseTokens(tokens)
+
+    if(right.tag === 'operator' && token?.weight > right.weight) {
+        const temp = right.left
+        right.left = {
+            tag: 'operator',
+            value: token.value,
+            left: carry,
+            right: temp,
+            weight: token.weight
+        }
+        return right
+    }
+
+    return parseTokens(tokens, {
+        tag: 'operator',
+        value: token.value,
+        left: carry,
+        right,
+        weight: token.weight
+    })
+}
+
+export const parseTokens = (tokens: Token[], carry?: Tree): Tree => {
+    let head = tokens[0]
+
+    if(head?.tag === 'literal') return parseLiteral(tokens)
+
+    if(head?.tag === 'operator') return parseOperator(tokens, carry)
+
+    if(carry) return carry
+
+    throw new Error('Unexpected token')
+}
+
+export const adjustTokens = (tokens: Token[]): Token[] => {
+    let level = 1
+
+    const adjustedTokens: Token[] = []
+
+    for (let token of tokens) {
+        if(token.tag === 'operator') adjustedTokens.push({
+            ...token,
+            weight: token.weight + (level * 2)
+        })
+
+        if(token.tag === 'literal') adjustedTokens.push(token)
+
+        if(token.tag === 'open') level++
+
+        if(token.tag === 'close') level--
+    }
+
+    return adjustedTokens
+}
 
 export const parse = (tokens: Token[]): Tree => {
-    let token: Token = tokens.shift()!;
+    const adjustedTokens = adjustTokens(tokens)
 
-    if(!token) throw new Error('Invalid token');
-    
-    let tree: Tree = {} as Tree;
-    
-    if (token.tag === 'literal') {
-        tree = { tag: 'number', value: token.value };
-        if(tokens.length) token = tokens.shift()!;
-        if(token.tag !== 'operator') return tree;
-    }
-    if (token.tag === 'open') {
-        tree = parse(tokens);
-        const op = tokens.shift()!;
-        if(!op) return tree;
-        const right = parse(tokens);
-
-        if(op.tag !== 'operator') throw new Error('Scope needs to have at least one operator');
-
-        return { tag: 'operator', value: op.value, left: tree, right }
-    }
-    if (token.tag === 'close') {
-        throw new Error('Trying to parse invalid syntax of parentesis');
-    }
-    
-    const right = parse(tokens);
-
-    tree = { tag: 'operator', value: `${token.value}`, left: tree, right };
-    return tree;
+    return parseTokens(adjustedTokens)
 }

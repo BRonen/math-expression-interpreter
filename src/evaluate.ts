@@ -1,7 +1,7 @@
 import type { Tree } from "./types";
 
 export const evaluate = (tree: Tree): number => {
-    if (tree.tag === 'number') {
+    if (tree.tag === 'literal') {
       return tree.value;
     }
 
@@ -11,13 +11,13 @@ export const evaluate = (tree: Tree): number => {
     
         switch (tree.value) {
             case 'plus':
-                return left + right;
+                return right + left;
             case 'dash':
-                return left - right;
+                return right - left;
             case 'star':
-                return left * right;
+                return right * left;
             case 'bar':
-                return left / right;
+                return right / left;
         }
     }
     

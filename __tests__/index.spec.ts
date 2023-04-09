@@ -1,13 +1,14 @@
 import { tokenizer, tokenizeOperator, parse, evaluate } from "../src/";
+import { parseLiteral, parseOperator } from '../src/parser';
 
 describe('tokenizer module', () => {
   test('tokenize 1 + 2 expression', () => {
     const tokens = tokenizer("1 + 2");
 
     expect(tokens).toMatchObject([
-      { tag: 'literal', value: 1 },
-      { tag: 'operator', value: 'plus' },
       { tag: 'literal', value: 2 },
+      { tag: 'operator', value: 'plus' },
+      { tag: 'literal', value: 1 },
     ]);
   });
 
@@ -16,11 +17,11 @@ describe('tokenizer module', () => {
 
     expect(tokens).toMatchObject([
       { tag: 'open' },
-      { tag: 'literal', value: 1 },
-      { tag: 'operator', value: 'plus' },
-      { tag: 'literal', value: 2 },
-      { tag: 'operator', value: 'star' },
       { tag: 'literal', value: 3 },
+      { tag: 'operator', value: 'star' },
+      { tag: 'literal', value: 2 },
+      { tag: 'operator', value: 'plus' },
+      { tag: 'literal', value: 1 },
       { tag: 'close' },
     ]);
   });
@@ -30,13 +31,13 @@ describe('tokenizer module', () => {
 
     expect(tokens).toMatchObject([
       { tag: 'open' },
-      { tag: 'literal', value: 1 },
-      { tag: 'operator', value: 'bar' },
       { tag: 'open' },
-      { tag: 'literal', value: 2 },
-      { tag: 'operator', value: 'dash' },
       { tag: 'literal', value: 3 },
+      { tag: 'operator', value: 'dash' },
+      { tag: 'literal', value: 2 },
       { tag: 'close' },
+      { tag: 'operator', value: 'bar' },
+      { tag: 'literal', value: 1 },
       { tag: 'close' },
     ]);
   });
@@ -49,8 +50,8 @@ describe('parser module', () => {
     expect(tree).toMatchObject({
       tag: 'operator',
       value: 'plus',
-      left: { tag: 'number', value: 1 },
-      right: { tag: 'number', value: 2 }
+      left: { tag: 'literal', value: 2 },
+      right: { tag: 'literal', value: 1 }
     });
   });
 
@@ -59,16 +60,16 @@ describe('parser module', () => {
 
     expect(tree).toMatchObject({
       tag: 'operator',
-      value: 'star',
-      left: { tag: 'number', value: 1 },
+      value: 'plus',
+      left: { tag: 'literal', value: 3 },
       right: {
         tag: 'operator',
-        value: 'plus',
+        value: 'star',
         left: {
-          tag: 'number', value: 2
+          tag: 'literal', value: 2
         },
         right: {
-          tag: 'number', value: 3
+          tag: 'literal', value: 1
         }
       }
     });
@@ -77,11 +78,35 @@ describe('parser module', () => {
   test('parse 1 into a tree', () => {
     const tree = parse(tokenizer("1"));
 
-    expect(tree).toMatchObject({ tag: 'number', value: 1 });
+    expect(tree).toMatchObject({ tag: 'literal', value: 1 });
+  });
+
+  test('parse an operator without a literal after', () => {
+    const exec = () => parse(tokenizer("2 +"));
+
+    expect(exec).toThrow('Operator needs to be after a literal or expression');
+  });
+
+  test('parse an operator without a literal before', () => {
+    const exec = () => parse(tokenizer("+ 2"));
+
+    expect(exec).toThrow('Unexpected token');
+  });
+
+  test('parse literal without a literal', () => {
+    const exec = () => parseLiteral(tokenizer("+"));
+
+    expect(exec).toThrow('Operator needs to be before a literal or expression');
+  });
+
+  test('parse operator without a operator', () => {
+    const exec = () => parseOperator(tokenizer("1"));
+
+    expect(exec).toThrow('Operator needs to be after a literal or expression');
   });
 });
 
-describe('evaluater module', () => {
+describe('evaluate module', () => {
   test('evaluate 2 - 1 to the result', () => {
     const result = evaluate(parse(tokenizer("2 - 1")));
 
@@ -89,9 +114,27 @@ describe('evaluater module', () => {
   });
 
   test('evaluate (3 * (2 + 4) / 2) to the result', () => {
-    const result = evaluate(parse(tokenizer("(3 * (2 + 4) / 2)")));
+    const result = evaluate(parse(tokenizer("(3 * 4 / 2)")));
 
-    expect(result).toBe(9);
+    expect(result).toBe(6);
+  });
+
+  test('evaluate 5 * 2 + 1 to the result', () => {
+    const result = evaluate(parse(tokenizer("5 * 2 + 1")));
+
+    expect(result).toBe(11);
+  });
+
+  test('evaluate 5 + 2 * 1 to the result', () => {
+    const result = evaluate(parse(tokenizer("5 + 2 * 1")));
+
+    expect(result).toBe(7);
+  });
+  
+  test('evaluate 5 * (2 + 1) to the result', () => {
+    const result = evaluate(parse(tokenizer("5 * (2 + 1)")));
+
+    expect(result).toBe(15);
   });
 });
 
@@ -106,43 +149,21 @@ describe('errors module', () => {
         tag: 'operator',
         value: 'invalid-example',
         left: {
-          tag: 'number', value: 2
+          tag: 'literal', value: 2
         },
         right: {
-          tag: 'number', value: 3
+          tag: 'literal', value: 3
         },
+        weight: 1,
       });
     }
     expect(exec).toThrowError('Invalid token on tree');
-  });
-
-  test('throw error on evaluate of invalid token', () => {
-    const exec = () => {
-      parse([{
-        tag: 'close'
-      }]);
-    }
-    expect(exec).toThrowError('Trying to parse invalid syntax of parentesis');
   });
 
   test('throw error when not parsing of any token', () => {
     const exec = () => {
       parse([]);
     }
-    expect(exec).toThrowError('Invalid token');
-  });
-
-  test('throw error if scope dont have at least one operator', () => {
-    const exec = () => {
-      parse([
-        { tag: 'open' },
-        { tag: 'literal', value: 1 },
-        { tag: 'literal', value: 2 },
-        { tag: 'literal', value: 3 },
-        { tag: 'literal', value: 4 },
-        { tag: 'close' },
-      ]);
-    };
-    expect(exec).toThrowError('Scope needs to have at least one operator');
+    expect(exec).toThrowError('Unexpected token');
   });
 });

@@ -9,13 +9,13 @@ const literals = [
 export const tokenizeOperator = (operatorChar: string): Token => {
     switch(operatorChar) {
         case '+':
-            return { tag: 'operator', value: 'plus' };
+            return { tag: 'operator', value: 'plus', weight: 1 };
         case '-':
-            return { tag: 'operator', value: 'dash' };
+            return { tag: 'operator', value: 'dash', weight: 1 };
         case '*':
-            return { tag: 'operator', value: 'star' };
+            return { tag: 'operator', value: 'star', weight: 2 };
         case '/':
-            return { tag: 'operator', value: 'bar' };
+            return { tag: 'operator', value: 'bar', weight: 2 };
         default:
             throw new Error('Operator not implemented');
     }
@@ -45,12 +45,12 @@ export const tokenizer = (source: string): Token[] => {
         }
 
         if(char === '(') {
-            tokens.push({ tag: 'open' });
+            tokens.push({ tag: 'close' });
             continue;
         }
 
         if(char === ')') {
-            tokens.push({ tag: 'close' });
+            tokens.push({ tag: 'open' });
             continue;
         }
     }
@@ -58,5 +58,5 @@ export const tokenizer = (source: string): Token[] => {
     if(literalAcc.length)
         tokens.push({ tag: 'literal', value: Number(literalAcc.join('')) });
 
-    return tokens;
+    return tokens.reverse();
 }
