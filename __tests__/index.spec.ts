@@ -120,9 +120,9 @@ describe('evaluate module', () => {
   });
 
   test('evaluate (3 * (2 + 4) / 2) to the result', () => {
-    const result = evaluate(parse(tokenizer("(3 * 4 / 2)")));
+    const result = evaluate(parse(tokenizer("(3 * (2 + 4) / 2)")));
 
-    expect(result).toBe(6);
+    expect(result).toBe(9);
   });
 
   test('evaluate 5 * 2 + 1 to the result', () => {
@@ -137,10 +137,10 @@ describe('evaluate module', () => {
     expect(result).toBe(7);
   });
   
-  test('evaluate 5 * (2 + 1) to the result', () => {
-    const result = evaluate(parse(tokenizer("5 * (2 + 1)")));
+  test('evaluate ((4 / (2 * 2 / 1 + 0)) * (2 + 1)) to the result', () => {
+    const result = evaluate(parse(tokenizer("((4 / (2 * 2 / 1 + 0)) * (2 + 1))")));
 
-    expect(result).toBe(15);
+    expect(result).toBe(3);
   });
 });
 
