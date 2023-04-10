@@ -5,7 +5,7 @@ export const parseLiteral = (tokens: Token[]): Tree => {
     const head = tokens[0]
 
     if(token?.tag !== 'literal')
-        throw new Error('Operator needs to be before a literal or expression')
+        throw new Error(`Expected a literal but received: ${JSON.stringify(token)}`)
 
     if(head?.tag !== 'operator')
         return { tag: 'literal', value: token.value }
@@ -16,8 +16,9 @@ export const parseLiteral = (tokens: Token[]): Tree => {
 export const parseOperator = (tokens: Token[], carry?: Tree): Tree => {
     const token = tokens.shift()
 
-    if(!carry || token?.tag !== 'operator')
-        throw Error('Operator needs to be after a literal or expression')
+    if(!carry) throw Error(`Expected a literal before operator: ${JSON.stringify(token)}`)
+
+    if(token?.tag !== 'operator') throw Error(`Expected a operator but received: ${JSON.stringify(token)}`)
 
     const right = parseTokens(tokens)
 

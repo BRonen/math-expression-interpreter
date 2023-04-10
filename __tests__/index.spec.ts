@@ -84,7 +84,7 @@ describe('parser module', () => {
   test('parse an operator without a literal after', () => {
     const exec = () => parse(tokenizer("2 +"));
 
-    expect(exec).toThrow('Operator needs to be after a literal or expression');
+    expect(exec).toThrow('Expected a literal before operator: {"tag":"operator","value":"plus","weight":3}');
   });
 
   test('parse an operator without a literal before', () => {
@@ -96,13 +96,19 @@ describe('parser module', () => {
   test('parse literal without a literal', () => {
     const exec = () => parseLiteral(tokenizer("+"));
 
-    expect(exec).toThrow('Operator needs to be before a literal or expression');
+    expect(exec).toThrow('Expected a literal but received: {"tag":"operator","value":"plus","weight":1}');
   });
 
   test('parse operator without a operator', () => {
+    const exec = () => parseOperator(tokenizer("1"), parse(tokenizer("1")));
+
+    expect(exec).toThrow('Expected a operator but received: {"tag":"literal","value":1}');
+  });
+
+  test('parse operator without a carry', () => {
     const exec = () => parseOperator(tokenizer("1"));
 
-    expect(exec).toThrow('Operator needs to be after a literal or expression');
+    expect(exec).toThrow('Expected a literal before operator: {"tag":"literal","value":1}');
   });
 });
 
