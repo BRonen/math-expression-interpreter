@@ -1,0 +1,1 @@
+[![Typescript Version CI](https://github.com/BRonen/math-expression-interpreter/actions/workflows/node.js.yml/badge.svg)](https://github.com/BRonen/math-expression-interpreter/actions/workflows/node.js.yml)
