@@ -13,7 +13,6 @@ author:         Brenno Rodrigues
 maintainer:     brennopereira6@gmail.com
 copyright:      2023 Brenno Rodrigues
 license:        MIT
-license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
