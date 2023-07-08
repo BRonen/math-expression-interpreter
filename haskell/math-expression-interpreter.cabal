@@ -23,7 +23,9 @@ source-repository head
 
 library
   exposed-modules:
-      Lexer, Parser, Evaluate
+      Evaluate
+      Lexer
+      Parser
   other-modules:
       Paths_math_expression_interpreter
   hs-source-dirs:

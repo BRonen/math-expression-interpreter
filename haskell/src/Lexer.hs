@@ -3,7 +3,7 @@ module Lexer (tokenize, Token (..)) where
 data Token = ValueToken String | OperatorToken String | LParenToken | RParenToken deriving (Show, Eq)
 
 operators :: [String]
-operators = ["+", "-", "*", "/", "--"]
+operators = ["+", "-", "*", "/", "--", "in", "where"]
 
 tokenize :: [String] -> [Token]
 tokenize [] = []

@@ -1,1 +1,1 @@
-( 123 * 321 ) - ( ( 543 / 3 ) + 321 ) + ( ( 222 - 432 ) * 32 ) -- should_be_equals_to_32261
+y=5 in ( ( algo=2 in algo + ( x * y ) ) + teste where teste=5 ) where x=2 -- this_should_be_17
